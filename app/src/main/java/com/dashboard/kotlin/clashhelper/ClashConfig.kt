@@ -17,11 +17,11 @@ object ClashConfig {
 
     init {
         System.loadLibrary("yaml-reader")
-        setTemplate()
+        setConfig()
         paths = Shell.cmd(
             "mkdir -p $dataPath/run",
-             "cp -f $dataPath/clash.config $dataPath/run/c.cfg",
-            " echo '\necho \"\${Clash_bin_path};\${Clash_scripts_dir};\"' >> $dataPath/run/c.cfg",
+            "cp -f $dataPath/clash.config $dataPath/run/c.cfg",
+            "echo '\necho \"\${Clash_bin_path};\${Clash_scripts_dir};\"' >> $dataPath/run/c.cfg",
             "$dataPath/run/c.cfg"
         ).exec().out.last().split(';')
         Shell.cmd("rm -f $dataPath/run/c.cfg").submit()
@@ -59,34 +59,26 @@ object ClashConfig {
     }
 
     val dashBoard by  lazy {
-        getFromFile("$GExternalCacheDir/template", arrayOf("external-ui"))
+        getFromFile("$GExternalCacheDir/config.yaml", arrayOf("external-ui"))
     }
 
     val secret by lazy {
-        getFromFile("$GExternalCacheDir/template", arrayOf("secret"))
+        getFromFile("$GExternalCacheDir/config.yaml", arrayOf("secret"))
     }
 
     fun updateConfig(callBack: (r: String) -> Unit) {
-        runCatching {
-            mergeConfig("config_output.yaml")
-
-            if (Shell
-                    .cmd("diff '$GExternalCacheDir/config_output.yaml' '$mergedConfigPath' > /dev/null")
-                    .exec()
-                    .isSuccess
-            ) {
-                callBack("配置莫得变化")
-                return
-            } else {
-                val cmd = Shell.cmd("cp -f '$GExternalCacheDir/config_output.yaml' '$mergedConfigPath'").exec()
-                if (cmd.isSuccess.not()){
-                    callBack("${cmd.out}")
-                    return
-                }
-            }
-        }.onFailure {
-            callBack("合并失败啦")
+        if (Shell.cmd("diff '$configPath' '$mergedConfigPath' > /dev/null")
+                .exec()
+                .isSuccess
+        ) {
+            callBack("配置莫得变化")
             return
+        } else {
+            val cmd = Shell.cmd("cp -f '$configPath' '$mergedConfigPath'").exec()
+            if (cmd.isSuccess.not()){
+                callBack("${cmd.out}")
+                return
+            }
         }
         if (Shell.cmd("$corePath -d $dataPath -f $mergedConfigPath -t > /dev/null").exec().isSuccess)
             updateConfigNet(mergedConfigPath, callBack)
@@ -137,24 +129,10 @@ object ClashConfig {
         }
     }
 
-    private fun mergeConfig(outputFileName: String) {
-        //copyFile(clashDataPath, "config.yaml")
-        copyFile(dataPath, "template")
-        Shell.cmd(
-            "sed -n -E '/^proxies:.*\$/,\$p' $configPath> $GExternalCacheDir/config.yaml"
-        ).exec()
-        mergeFile(
-            "$GExternalCacheDir/template",
-            "$GExternalCacheDir/config.yaml",
-            "$GExternalCacheDir/$outputFileName"
-        )
-        deleteFile(GExternalCacheDir, "config.yaml")
-        Log.e("TAG", "mergeConfig: $GExternalCacheDir", )
-    }
 
     private fun getExternalController(): String {
 
-        val temp = getFromFile("$GExternalCacheDir/template", arrayOf("external-controller"))
+        val temp = getFromFile("$GExternalCacheDir/config.yaml", arrayOf("external-controller"))
 
         return when {
             temp.trim() == "" -> "127.0.0.1:9090"
@@ -186,11 +164,6 @@ object ClashConfig {
 
     private external fun getFromFile(path: String, nodes: Array<String>): String
     private external fun modifyFile(path: String, node: String, value: String)
-    private external fun mergeFile(
-        mainFilePath: String,
-        templatePath: String,
-        outputFilePath: String
-    )
 
-    private fun setTemplate() = copyFile(dataPath, "template")
+    private fun setConfig() = copyFile(dataPath, "config.yaml")
 }
