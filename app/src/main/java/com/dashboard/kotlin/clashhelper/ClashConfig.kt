@@ -21,7 +21,7 @@ object ClashConfig {
         paths = Shell.cmd(
             "mkdir -p $dataPath/run",
             "cp -f $dataPath/clash.config $dataPath/run/c.cfg",
-            "echo '\necho \"\${Clash_bin_path};\${Clash_scripts_dir};\"' >> $dataPath/run/c.cfg",
+            "echo '\necho \"\${Clash_bin_path};\${Clash_scripts_dir};\${Subcript_url}\"' >> $dataPath/run/c.cfg",
             "$dataPath/run/c.cfg"
         ).exec().out.last().split(';')
         Shell.cmd("rm -f $dataPath/run/c.cfg").submit()
@@ -42,7 +42,13 @@ object ClashConfig {
         }.getOrDefault( "/data/clash/scripts")
     }
 
-    val mergedConfigPath
+    //val Subscribe by lazy {
+    //    runCatching {
+    //        paths[1].trim() != ""
+    //    }.getOrDefault( false)
+    //}
+
+    private val mergedConfigPath
         get() = "${dataPath}/run/config.yaml"
 
     val logPath
@@ -141,14 +147,12 @@ object ClashConfig {
         }
     }
 
-
-
-    private fun setFileNR(dirPath: String, fileName: String, func: (file: String) -> Unit) {
-        copyFile(dirPath, fileName)
-        func("$GExternalCacheDir/${fileName}")
-        Shell.cmd("cp '$GExternalCacheDir/${fileName}' '${dirPath}/${fileName}'").exec()
-        deleteFile(GExternalCacheDir, fileName)
-    }
+    //private fun setFileNR(dirPath: String, fileName: String, func: (file: String) -> Unit) {
+    //    copyFile(dirPath, fileName)
+    //    func("$GExternalCacheDir/${fileName}")
+    //    Shell.cmd("cp '$GExternalCacheDir/${fileName}' '${dirPath}/${fileName}'").exec()
+    //    deleteFile(GExternalCacheDir, fileName)
+    //}
 
     private fun copyFile(dirPath: String, fileName: String) {
         Shell.cmd("cp '${dirPath}/${fileName}' '$GExternalCacheDir/${fileName}'").exec()
@@ -156,11 +160,11 @@ object ClashConfig {
         return
     }
 
-    private fun deleteFile(dirPath: String, fileName: String) {
-        runCatching {
-            File(dirPath, fileName).delete()
-        }
-    }
+    //private fun deleteFile(dirPath: String, fileName: String) {
+    //    runCatching {
+    //        File(dirPath, fileName).delete()
+    //    }
+    //}
 
     private external fun getFromFile(path: String, nodes: Array<String>): String
     private external fun modifyFile(path: String, node: String, value: String)
