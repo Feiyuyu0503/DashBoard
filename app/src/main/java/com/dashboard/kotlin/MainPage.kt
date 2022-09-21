@@ -14,6 +14,7 @@ import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.findNavController
+import androidx.navigation.fragment.findNavController
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
 import com.dashboard.kotlin.clashhelper.ClashConfig
@@ -37,6 +38,12 @@ class MainPage : Fragment(), androidx.appcompat.widget.Toolbar.OnMenuItemClickLi
         savedInstanceState: Bundle?
     ): View? {
         // Inflate the layout for this fragment
+        if (KV.getBoolean("TailLongClick", false))
+            runCatching {
+                findNavController()
+                    .navigate(R.id.action_mainPage_to_webViewPage_withoutBackStack, getWebViewBundle())
+            }
+
         Log.d("onCreateView", "MainPage onCreateView !")
         return inflater.inflate(R.layout.fragment_main_page, container, false)
     }
@@ -47,7 +54,6 @@ class MainPage : Fragment(), androidx.appcompat.widget.Toolbar.OnMenuItemClickLi
         Log.d("ViewCreated", "MainPageViewCreated")
 
         mToolbar.setOnMenuItemClickListener(this)
-
         //TODO 添加 app 图标
         mToolbar.title = getString(R.string.app_name) +
                 "-V" +
@@ -91,20 +97,8 @@ class MainPage : Fragment(), androidx.appcompat.widget.Toolbar.OnMenuItemClickLi
 
         menu_web_dashboard.setOnLongClickListener(this)
         menu_web_dashboard.setOnClickListener {
-            val bundle = Bundle()
-
-            val db = runCatching {
-                WebUI.valueOf(KV.getString("DB_NAME", "LOCAL")!!).url
-            }.getOrDefault("${ClashConfig.baseURL}/ui/")
-            bundle.putString("URL", db +
-                    if ((context?.resources?.configuration?.uiMode
-                            ?.and(Configuration.UI_MODE_NIGHT_MASK)) == Configuration.UI_MODE_NIGHT_YES) {
-                        "?theme=dark"
-                    }else{
-                        "?theme=light"
-                    })
             runCatching {
-                it.findNavController().navigate(R.id.action_mainPage_to_webViewPage, bundle)
+                it.findNavController().navigate(R.id.action_mainPage_to_webViewPage, getWebViewBundle())
             }
         }
 
@@ -334,5 +328,21 @@ class MainPage : Fragment(), androidx.appcompat.widget.Toolbar.OnMenuItemClickLi
             })
         }.show()
         return true
+    }
+
+    private fun getWebViewBundle(): Bundle {
+        val bundle = Bundle()
+
+        val db = runCatching {
+            WebUI.valueOf(KV.getString("DB_NAME", "LOCAL")!!).url
+        }.getOrDefault("${ClashConfig.baseURL}/ui/")
+        bundle.putString("URL", db +
+                if ((context?.resources?.configuration?.uiMode
+                        ?.and(Configuration.UI_MODE_NIGHT_MASK)) == Configuration.UI_MODE_NIGHT_YES) {
+                    "?theme=dark"
+                }else{
+                    "?theme=light"
+                })
+        return bundle
     }
 }

@@ -1,17 +1,15 @@
 package com.dashboard.kotlin
 
+import android.content.ComponentName
+import android.content.Intent
 import android.os.Bundle
-import android.util.Log
+import android.service.quicksettings.TileService
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.res.ResourcesCompat
 import com.tencent.mmkv.MMKV
 import com.topjohnwu.superuser.BusyBoxInstaller
 import com.topjohnwu.superuser.Shell
-import java.io.DataInputStream
-import java.io.File
-import java.text.SimpleDateFormat
-import java.util.*
 
 
 lateinit var GExternalCacheDir: String
@@ -41,55 +39,19 @@ class MainActivity : AppCompatActivity() {
             applicationContext?.theme
         )
 
-        //debug version print logs
-        //if (BuildConfig.DEBUG) {
-        //    thread { saveLogs() }
-        //} else {
-        //    File(externalCacheDir.toString()).walk()
-        //        .maxDepth(1)
-        //        .filter { it.isFile }
-        //        .filter { it.name.startsWith("log") }
-        //        .filter { it.extension == "txt" }
-        //        .forEach { it.delete() }
-        //}
-        //verbal /storage/emulated/0/Android/data/com.dashboard.kotlin/cache
         GExternalCacheDir = applicationContext.externalCacheDir.toString()
         MMKV.initialize(this)
         KV = MMKV.defaultMMKV(MMKV.MULTI_PROCESS_MODE, null)
-    }
 
-
-    fun saveLogs() {
-        val cmd = "logcat -v time"
-        var process: Process? = null
-        var ls: DataInputStream? = null
-        try {
-            Log.i("LogCat", "Start")
-            process = Runtime.getRuntime().exec(cmd)
-            ls = DataInputStream(process.inputStream)
-            File(
-                externalCacheDir, "log_${
-                    SimpleDateFormat(
-                        "yyyy-MM-dd_HH-mm-ss", Locale.getDefault(
-                            Locale.Category.FORMAT
-                        )
-                    ).format(Date())
-                }.txt"
-            ).outputStream().use {
-                ls.copyTo(it)
+        KV.putBoolean("TailLongClick", false)
+        if (intent.action == TileService.ACTION_QS_TILE_PREFERENCES) {
+            val componentName =intent.extras?.get(Intent.EXTRA_COMPONENT_NAME) as ComponentName?
+            componentName?:return
+            Class.forName(componentName.className).newInstance().apply {
+                if (this is TileButtonService) {
+                    KV.putBoolean("TailLongClick", true)
+                }
             }
-
-            process.waitFor()
-        } catch (e: Exception) {
-            Log.e("LogCat", "Exception: $e")
-        } finally {
-            try {
-                ls?.close()
-                process?.destroy()
-            } catch (e: Exception) {
-                Log.e("LogCat", "close stream exception: $e")
-            }
-            Log.i("LogCat", "End")
         }
     }
 }

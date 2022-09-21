@@ -2,13 +2,21 @@
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    app:startDestination="@id/mainPage">
+    app:startDestination="@id/mainPage"
+    android:id="@+id/main_nav">
 
     <fragment
         android:id="@+id/mainPage"
         android:name="com.dashboard.kotlin.MainPage"
         android:label="fragment_main_page"
         tools:layout="@layout/fragment_main_page">
+        <action
+            android:id="@+id/action_mainPage_to_webViewPage_withoutBackStack"
+            app:destination="@id/webViewPage"
+            app:popUpTo="@id/main_nav"
+            app:popUpToInclusive="true"
+            app:launchSingleTop="true" />
+
         <action
             android:id="@+id/action_mainPage_to_webViewPage"
             app:destination="@id/webViewPage"

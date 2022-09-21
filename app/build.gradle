@@ -58,15 +58,20 @@ android {
             path file('./src/cpp/CMakeLists.txt')
         }
     }
+    buildFeatures {
+        viewBinding true
+    }
 }
 
 dependencies {
-    implementation 'androidx.appcompat:appcompat:1.4.1'
-    implementation 'androidx.navigation:navigation-fragment-ktx:2.4.2'
-    implementation 'androidx.navigation:navigation-ui-ktx:2.4.2'
+    implementation 'androidx.appcompat:appcompat:1.5.1'
+    implementation 'androidx.navigation:navigation-fragment-ktx:2.5.2'
+    implementation 'androidx.navigation:navigation-ui-ktx:2.5.2'
     implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
     //mmkv
     implementation 'com.tencent:mmkv-static:1.2.13'
+    implementation 'com.google.android.material:material:1.6.1'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
 
     def libsuVersion = '4.0.3'
     implementation "com.github.topjohnwu.libsu:core:${libsuVersion}"

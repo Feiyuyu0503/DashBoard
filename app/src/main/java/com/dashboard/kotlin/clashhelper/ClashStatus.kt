@@ -17,11 +17,11 @@ object ClashStatus {
         CmdRunning, Running, Stop
     }
 
-    fun getRunStatus(mainScope: Boolean = true, cb: (Status)->Unit) {
+    fun getRunStatus(mainScope: Boolean = true, cb: (Status)->Unit) =
         GlobalScope.launch(Dispatchers.IO) {
             val status =  when {
                 isCmdRunning -> Status.CmdRunning
-                clashRunning -> Status.Running
+                isClashRunning -> Status.Running
                 else -> Status.Stop
             }
             if (mainScope)
@@ -31,9 +31,8 @@ object ClashStatus {
             else
                 cb(status)
         }
-    }
 
-    private val clashRunning: Boolean
+    private val isClashRunning: Boolean
         get() =
             runCatching {
                 val conn =

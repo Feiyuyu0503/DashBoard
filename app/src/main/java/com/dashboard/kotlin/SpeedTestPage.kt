@@ -1,7 +1,6 @@
 package com.dashboard.kotlin
 
 import android.os.Bundle
-import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -27,7 +26,8 @@ class SpeedTestPage : Fragment() {
             val urls = arrayListOf(
                 "https://fast.com/zh/cn/",
                 "https://speed.cloudflare.com/",
-                "https://www.speedtest.net/"
+                "https://www.speedtest.net/",
+                "http://ovo.speedtestcustom.com/"
             )
 
             override fun getItemCount() = urls.size
