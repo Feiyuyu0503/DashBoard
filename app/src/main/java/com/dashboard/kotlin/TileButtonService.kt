@@ -3,6 +3,7 @@ package com.dashboard.kotlin
 import android.graphics.drawable.Icon
 import android.service.quicksettings.Tile
 import android.service.quicksettings.TileService
+import android.util.Log
 import com.dashboard.kotlin.clashhelper.ClashStatus
 import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.*
@@ -23,6 +24,7 @@ class TileButtonService : TileService() {
 
     lateinit var statusJob: Job
     override fun onStartListening() {
+        Log.d(TAG, "onStartListening: ")
         statusJob = GlobalScope.launch {
             while (true) {
                 ClashStatus.getRunStatus {
@@ -48,10 +50,12 @@ class TileButtonService : TileService() {
     }
 
     override fun onStopListening() {
+        Log.d(TAG, "onStopListening: ")
         runCatching { statusJob.cancel() }
     }
 
     override fun onClick() {
+        Log.d(TAG, "onClick: ")
         ClashStatus.switch()
     }
 }

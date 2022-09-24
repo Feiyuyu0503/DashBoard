@@ -7,6 +7,7 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.math.BigDecimal
 import java.math.RoundingMode
+import java.net.ConnectException
 
 @DelicateCoroutinesApi
 object ClashStatus {
@@ -42,7 +43,8 @@ object ClashStatus {
                 conn.inputStream.bufferedReader()
                     .readText().contains("{\"hello\":\"clash")
             }.onFailure {
-                Log.e("TAG", "clashRunning: $it", )
+                if (it !is ConnectException)
+                    throw it
             }.getOrDefault(false)
 
 
