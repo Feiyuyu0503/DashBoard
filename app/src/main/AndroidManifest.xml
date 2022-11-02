@@ -15,7 +15,6 @@
 
         <service
             android:name=".TileButtonService"
-            android:enabled="true"
             android:exported="true"
             android:icon="@drawable/ic_icon"
             android:label="@string/app_name"

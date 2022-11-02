@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.os.Bundle
 import android.text.Html
 import android.text.Spanned
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -19,7 +18,7 @@ import kotlinx.android.synthetic.main.fragment_log.*
 import kotlinx.coroutines.*
 
 @DelicateCoroutinesApi
-class LogPage : Fragment() {
+class CmdLogPage : Fragment() {
     private val job = Shell.Builder.create()
         .setInitializers(BusyBoxInstaller::class.java)
         .build()

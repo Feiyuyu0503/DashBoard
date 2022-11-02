@@ -69,8 +69,8 @@ dependencies {
     implementation 'androidx.navigation:navigation-ui-ktx:2.5.2'
     implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
     //mmkv
-    implementation 'com.tencent:mmkv-static:1.2.13'
-    implementation 'com.google.android.material:material:1.6.1'
+    implementation 'com.tencent:mmkv-static:1.2.14'
+    implementation 'com.google.android.material:material:1.7.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
 
     def libsuVersion = '4.0.3'

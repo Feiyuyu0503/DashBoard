@@ -1,7 +1,7 @@
 package com.dashboard.kotlin.clashhelper
 
 import android.util.Log
-import com.dashboard.kotlin.GExternalCacheDir
+import com.dashboard.kotlin.MApplication.Companion.GExternalCacheDir
 import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.*
 import org.json.JSONObject

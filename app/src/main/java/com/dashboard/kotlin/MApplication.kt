@@ -6,11 +6,12 @@ import com.tencent.mmkv.MMKV
 import com.topjohnwu.superuser.BusyBoxInstaller
 import com.topjohnwu.superuser.Shell
 
-
-lateinit var GExternalCacheDir: String
-lateinit var KV: MMKV
-
 class MApplication : Application() {
+    companion object {
+        lateinit var GExternalCacheDir: String
+        lateinit var KV: MMKV
+    }
+
     init {
         Shell.setDefaultBuilder(
             Shell.Builder.create()
