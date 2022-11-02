@@ -17,6 +17,7 @@ import androidx.navigation.findNavController
 import androidx.navigation.fragment.findNavController
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
+import com.dashboard.kotlin.MApplication.Companion.KV
 import com.dashboard.kotlin.clashhelper.ClashConfig
 import com.dashboard.kotlin.clashhelper.ClashStatus
 import com.dashboard.kotlin.clashhelper.CommandHelper
@@ -111,7 +112,7 @@ class MainPage : Fragment(), androidx.appcompat.widget.Toolbar.OnMenuItemClickLi
         viewPager.adapter = object: FragmentStateAdapter(this){
             val pages = listOf(
                 Fragment::class.java,
-                LogPage::class.java
+                CmdLogPage::class.java
             )
 
             override fun getItemCount() = pages.size
@@ -172,19 +173,18 @@ class MainPage : Fragment(), androidx.appcompat.widget.Toolbar.OnMenuItemClickLi
         Log.d("onResume", "MainPageResume")
 
         runningStatusScope?.cancel()
-        runningStatusScope = lifecycleScope.launch(Dispatchers.Default){
+        runningStatusScope = lifecycleScope.launch {
             var last: ClashStatus.Status? = null
             while (true){
-                ClashStatus.getRunStatus {
-                    if (last == it) return@getRunStatus
-                    last = it
-                    when(it){
-                        ClashStatus.Status.CmdRunning -> setStatusCmdRunning()
-                        ClashStatus.Status.Running -> setStatusRunning()
-                        ClashStatus.Status.Stop -> setStatusStopped()
-                    }
+                val status = ClashStatus.getRunStatus()
+                if (last == status) continue
+                last = status
+                when(status){
+                    ClashStatus.Status.CmdRunning -> setStatusCmdRunning()
+                    ClashStatus.Status.Running -> setStatusRunning()
+                    ClashStatus.Status.Stop -> setStatusStopped()
                 }
-                delay(400)
+                delay(500)
             }
         }
     }
@@ -268,7 +268,8 @@ class MainPage : Fragment(), androidx.appcompat.widget.Toolbar.OnMenuItemClickLi
                 true
             }
             R.id.menu_update_config -> {
-                ClashStatus.getRunStatus { status ->
+                lifecycleScope.launch {
+                    val status = ClashStatus.getRunStatus()
                     if (status == ClashStatus.Status.Running)
                         ClashConfig.updateConfig{
                             Toast.makeText(context, it, Toast.LENGTH_SHORT).show()

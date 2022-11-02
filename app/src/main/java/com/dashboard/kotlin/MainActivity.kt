@@ -4,13 +4,10 @@ import android.content.ComponentName
 import android.content.Intent
 import android.os.Bundle
 import android.service.quicksettings.TileService
-import android.util.Log
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.res.ResourcesCompat
-import com.tencent.mmkv.MMKV
-import com.topjohnwu.superuser.BusyBoxInstaller
-import com.topjohnwu.superuser.Shell
+import com.dashboard.kotlin.MApplication.Companion.KV
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

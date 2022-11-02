@@ -1,6 +1,7 @@
 package com.dashboard.kotlin.clashhelper
 
-import com.dashboard.kotlin.KV
+
+import com.dashboard.kotlin.MApplication.Companion.KV
 import kotlinx.coroutines.DelicateCoroutinesApi
 
 enum class WebUI {

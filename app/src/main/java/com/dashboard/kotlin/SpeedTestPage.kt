@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
+import com.dashboard.kotlin.MApplication.Companion.KV
 import kotlinx.android.synthetic.main.fragment_main_pages.*
 
 class SpeedTestPage : Fragment() {

@@ -1,13 +1,13 @@
 package com.dashboard.kotlin.clashhelper
 
 import android.util.Log
+import com.dashboard.kotlin.clashhelper.ClashStatus.Status.*
 import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.*
-import java.net.HttpURLConnection
-import java.net.URL
 import java.math.BigDecimal
 import java.math.RoundingMode
-import java.net.ConnectException
+import java.net.HttpURLConnection
+import java.net.URL
 
 @DelicateCoroutinesApi
 object ClashStatus {
@@ -18,34 +18,30 @@ object ClashStatus {
         CmdRunning, Running, Stop
     }
 
-    fun getRunStatus(mainScope: Boolean = true, cb: (Status)->Unit) =
-        GlobalScope.launch(Dispatchers.IO) {
-            val status =  when {
-                isCmdRunning -> Status.CmdRunning
-                isClashRunning -> Status.Running
-                else -> Status.Stop
+    suspend fun getRunStatus() =
+        withContext(Dispatchers.IO) {
+            when {
+                isCmdRunning -> CmdRunning
+                isClashRunning -> Running
+                else -> Stop
             }
-            if (mainScope)
-                withContext(Dispatchers.Main){
-                    cb(status)
-                }
-            else
-                cb(status)
         }
 
-    private val isClashRunning: Boolean
-        get() =
-            runCatching {
-                val conn =
-                    URL(ClashConfig.baseURL).openConnection() as HttpURLConnection
-                conn.requestMethod = "GET"
-                conn.setRequestProperty("Authorization", "Bearer ${ClashConfig.secret}")
-                conn.inputStream.bufferedReader()
-                    .readText().contains("{\"hello\":\"clash")
-            }.onFailure {
-                if (it !is ConnectException)
-                    throw it
-            }.getOrDefault(false)
+
+    private val isClashRunning by LazyWithTimeOut(500) {
+        runCatching {
+            val conn =
+                URL(ClashConfig.baseURL).openConnection() as HttpURLConnection
+            conn.requestMethod = "GET"
+            conn.connectTimeout = 500
+            conn.setRequestProperty("Authorization", "Bearer ${ClashConfig.secret}")
+            conn.inputStream.bufferedReader()
+                .readText().contains("{\"hello\":\"clash")
+        }.getOrDefault(
+            Shell.cmd("kill -0 `cat ${ClashConfig.pidPath}`")
+                .exec().isSuccess
+        )
+    }
 
 
     private val isGetStatusRunning
@@ -142,14 +138,15 @@ object ClashStatus {
         }
     }
 
-    fun switch(){
-        getRunStatus(false) {
-            if (it == Status.Running)
-                stop()
-            else
-                start()
+    fun switch() =
+        GlobalScope.launch {
+            when (getRunStatus()) {
+                CmdRunning -> Unit
+                Running -> stop()
+                Stop -> start()
+            }
         }
-    }
+
 
     fun updateGeox(){
         if (isCmdRunning) return
