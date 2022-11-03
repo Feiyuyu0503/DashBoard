@@ -12,11 +12,16 @@ import java.net.URL
 
 object ClashConfig {
 
-    var paths: List<String>
+    private var paths: List<String>
+    private val useTemplate: Boolean
 
     init {
         System.loadLibrary("yaml-reader")
-        setTemplate()
+        if (setTemplate().also { useTemplate = it })
+            mergeConfig("config.yaml")
+        else
+            setConfig()
+
         paths = Shell.cmd(
             "mkdir -p $dataPath/run",
              "cp -f $dataPath/clash.config $dataPath/run/c.cfg",
@@ -54,7 +59,13 @@ object ClashConfig {
         get() = "${dataPath}/config.yaml"
 
     val extController by lazy {
-        getExternalController()
+        val temp = getFromFile("$GExternalCacheDir/template", arrayOf("external-controller"))
+
+        when {
+            temp.trim() == "" -> "127.0.0.1:9090"
+            temp.startsWith(":") -> "127.0.0.1$temp"
+            else -> temp
+        }
     }
 
     val baseURL by lazy {
@@ -66,34 +77,30 @@ object ClashConfig {
     }
 
     val dashBoard by  lazy {
-        getFromFile("$GExternalCacheDir/template", arrayOf("external-ui"))
+        getFromFile("$GExternalCacheDir/config.yaml", arrayOf("external-ui"))
     }
 
     val secret by lazy {
-        getFromFile("$GExternalCacheDir/template", arrayOf("secret"))
+        getFromFile("$GExternalCacheDir/config.yaml", arrayOf("secret"))
     }
 
     fun updateConfig(callBack: (r: String) -> Unit) {
-        runCatching {
-            mergeConfig("config_output.yaml")
-
-            if (Shell
-                    .cmd("diff '$GExternalCacheDir/config_output.yaml' '$mergedConfigPath' > /dev/null")
-                    .exec()
-                    .isSuccess
-            ) {
-                callBack("配置莫得变化")
-                return
-            } else {
-                val cmd = Shell.cmd("cp -f '$GExternalCacheDir/config_output.yaml' '$mergedConfigPath'").exec()
-                if (cmd.isSuccess.not()){
-                    callBack("${cmd.out}")
-                    return
-                }
-            }
-        }.onFailure {
-            callBack("合并失败啦")
+        if (useTemplate) {
+            setTemplate()
+            mergeConfig("config.yaml")
+        }
+        if (Shell.cmd("diff '$configPath' '$mergedConfigPath' > /dev/null")
+                .exec()
+                .isSuccess
+        ) {
+            callBack("配置莫得变化")
             return
+        } else {
+            val cmd = Shell.cmd("cp -f '$configPath' '$mergedConfigPath'").exec()
+            if (cmd.isSuccess.not()){
+                callBack("${cmd.out}")
+                return
+            }
         }
         if (Shell.cmd("$corePath -d $dataPath -f $mergedConfigPath -t > /dev/null").exec().isSuccess)
             updateConfigNet(mergedConfigPath, callBack)
@@ -146,32 +153,18 @@ object ClashConfig {
     }
 
     private fun mergeConfig(outputFileName: String) {
-        //copyFile(clashDataPath, "config.yaml")
-        copyFile(dataPath, "template")
         Shell.cmd(
-            "sed -n -E '/^proxies:.*\$/,\$p' $configPath> $GExternalCacheDir/config.yaml"
+            "sed -n -E '/^proxies:.*\$/,\$p' $configPath> $GExternalCacheDir/noMergedConfig.yaml"
         ).exec()
         mergeFile(
             "$GExternalCacheDir/template",
-            "$GExternalCacheDir/config.yaml",
+            "$GExternalCacheDir/noMergedConfig.yaml",
             "$GExternalCacheDir/$outputFileName"
         )
-        deleteFile(GExternalCacheDir, "config.yaml")
+        deleteFile(GExternalCacheDir, "noMergedConfig.yaml")
+        Shell.cmd("cp -f '$GExternalCacheDir/$outputFileName' '$mergedConfigPath'")
         Log.e("TAG", "mergeConfig: $GExternalCacheDir", )
     }
-
-    private fun getExternalController(): String {
-
-        val temp = getFromFile("$GExternalCacheDir/template", arrayOf("external-controller"))
-
-        return when {
-            temp.trim() == "" -> "127.0.0.1:9090"
-            temp.startsWith(":") -> "127.0.0.1$temp"
-            else -> temp
-        }
-    }
-
-
 
     private fun setFileNR(dirPath: String, fileName: String, func: (file: String) -> Unit) {
         copyFile(dirPath, fileName)
@@ -180,10 +173,14 @@ object ClashConfig {
         deleteFile(GExternalCacheDir, fileName)
     }
 
-    private fun copyFile(dirPath: String, fileName: String) {
-        Shell.cmd("cp '${dirPath}/${fileName}' '$GExternalCacheDir/${fileName}'").exec()
-        Shell.cmd("chmod +rw '$GExternalCacheDir/${fileName}'").exec()
-        return
+    private fun copyFile(dirPath: String, fileName: String): Boolean {
+        if (Shell.cmd("ls '${dirPath}/${fileName}'").exec().isSuccess.not())
+            return false
+        Shell.cmd(
+            "cp '${dirPath}/${fileName}' '$GExternalCacheDir/${fileName}'",
+            "chmod +rw '$GExternalCacheDir/${fileName}'"
+        ).exec()
+        return true
     }
 
     private fun deleteFile(dirPath: String, fileName: String) {
@@ -201,4 +198,5 @@ object ClashConfig {
     )
 
     private fun setTemplate() = copyFile(dataPath, "template")
+    private fun setConfig() = copyFile(dataPath, "config.yaml")
 }
