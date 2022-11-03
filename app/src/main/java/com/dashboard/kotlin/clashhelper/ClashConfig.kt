@@ -5,12 +5,10 @@ import com.dashboard.kotlin.MApplication.Companion.GExternalCacheDir
 import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.*
 import org.json.JSONObject
-import java.io.File
 import java.net.HttpURLConnection
 import java.net.URL
 
 
-@DelicateCoroutinesApi
 object ClashConfig {
 
     var paths: List<String>
@@ -60,8 +58,16 @@ object ClashConfig {
     val configPath
         get() = "${dataPath}/config.yaml"
 
+    val extController by lazy {
+        getExternalController()
+    }
+
     val baseURL by lazy {
-        "http://${getExternalController()}"
+        "http://$extController"
+    }
+
+    val logLevel by lazy {
+        getFromFile("$GExternalCacheDir/config.yaml", arrayOf("log-level"))
     }
 
     val dashBoard by  lazy {
@@ -92,6 +98,7 @@ object ClashConfig {
             callBack("配置文件有误唉")
     }
 
+    @OptIn(DelicateCoroutinesApi::class)
     private fun updateConfigNet(configPath: String, callBack: (r: String) -> Unit) {
         GlobalScope.launch(Dispatchers.IO) {
             try {
