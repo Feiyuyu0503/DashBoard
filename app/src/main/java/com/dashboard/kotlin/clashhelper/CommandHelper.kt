@@ -1,7 +1,6 @@
 package com.dashboard.kotlin.clashhelper
 
 import android.util.Log
-import com.topjohnwu.superuser.Shell
 import java.math.BigDecimal
 import java.math.RoundingMode
 

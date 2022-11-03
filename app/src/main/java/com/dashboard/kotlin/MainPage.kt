@@ -112,7 +112,8 @@ class MainPage : Fragment(), androidx.appcompat.widget.Toolbar.OnMenuItemClickLi
         viewPager.adapter = object: FragmentStateAdapter(this){
             val pages = listOf(
                 Fragment::class.java,
-                CmdLogPage::class.java
+                CmdLogPage::class.java,
+                KernelLogPage::class.java
             )
 
             override fun getItemCount() = pages.size

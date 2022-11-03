@@ -1,14 +1,9 @@
 package com.dashboard.kotlin
 
 import android.annotation.SuppressLint
-import android.os.Bundle
-import android.text.Html
 import android.text.Spanned
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import android.widget.ScrollView
-import androidx.fragment.app.Fragment
+import androidx.core.text.HtmlCompat
 import androidx.lifecycle.lifecycleScope
 import com.dashboard.kotlin.clashhelper.ClashConfig
 import com.dashboard.kotlin.clashhelper.ClashStatus
@@ -18,20 +13,12 @@ import kotlinx.android.synthetic.main.fragment_log.*
 import kotlinx.coroutines.*
 
 @DelicateCoroutinesApi
-class CmdLogPage : Fragment() {
+class CmdLogPage : BaseLogPage() {
     private val job = Shell.Builder.create()
         .setInitializers(BusyBoxInstaller::class.java)
         .build()
         .newJob().add("cat ${ClashConfig.logPath}")
     var flag = false
-
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        return inflater.inflate(R.layout.fragment_log, container, false)
-    }
 
     override fun onResume() {
         super.onResume()
@@ -76,9 +63,11 @@ class CmdLogPage : Fragment() {
         }
     }
 
-    private fun readLog(): String{
+    private suspend fun readLog(): String{
         val lst = mutableListOf<String>()
-        job.to(lst).exec()
+        withContext(Dispatchers.IO) {
+            job.to(lst).exec()
+        }
         return lst.joinToString("\n")
     }
 
@@ -107,7 +96,7 @@ class CmdLogPage : Fragment() {
 
             }
 
-            return Html.fromHtml(rstr.toString())
+            return HtmlCompat.fromHtml(rstr.toString(), HtmlCompat.FROM_HTML_MODE_LEGACY)
         }
     }
 }
