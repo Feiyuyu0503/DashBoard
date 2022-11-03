@@ -5,13 +5,14 @@ import androidx.core.text.HtmlCompat
 import androidx.lifecycle.lifecycleScope
 import com.dashboard.kotlin.clashhelper.ClashConfig
 import com.google.gson.Gson
+import com.google.gson.annotations.SerializedName
 import kotlinx.android.synthetic.main.fragment_log.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import okhttp3.*
 
 class KernelLogPage: BaseLogPage() {
-    data class WSLog(val type: String, val payload: String)
+    data class WSLog(@SerializedName("type")val type: String?, @SerializedName("payload")val payload: String?)
 
     private val gson = Gson()
     private val wsRawLog = Channel<String>(Channel.UNLIMITED)
@@ -47,7 +48,9 @@ class KernelLogPage: BaseLogPage() {
     private suspend fun handleLog() {
         showLog()
         for (rawLog in wsRawLog) {
-            val wsLog = gson.fromJson(rawLog, WSLog::class.java)
+            var wsLog = gson.fromJson(rawLog, WSLog::class.java)
+            if (wsLog.type == null)
+                wsLog = WSLog("error", rawLog)
             val html = "<span style='color:${levelToColor.getOrDefault(wsLog.type, "")}'><strong>${wsLog.type}</strong></span>" +
                     "&nbsp<span>${wsLog.payload}</span><br/>"
             if (logs.size > MAX_LENGTH - 1) logs.removeLast()
