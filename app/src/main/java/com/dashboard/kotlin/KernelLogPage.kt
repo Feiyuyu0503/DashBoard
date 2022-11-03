@@ -22,7 +22,7 @@ class KernelLogPage: BaseLogPage() {
     override fun onResume() {
         super.onResume()
         val request = Request.Builder()
-            .url("ws://${ClashConfig.extController}/logs?token=&level=${ClashConfig.logLevel}")
+            .url("ws://${ClashConfig.extController}/logs?token=${ClashConfig.secret}&level=${ClashConfig.logLevel}")
             .build()
         webSocket?.cancel()
         webSocket = client.newWebSocket(request, object: WebSocketListener() {
