@@ -1,6 +1,5 @@
 package com.dashboard.kotlin
 
-import android.util.Log
 import androidx.core.text.HtmlCompat
 import androidx.lifecycle.lifecycleScope
 import com.dashboard.kotlin.clashhelper.ClashConfig
@@ -60,7 +59,7 @@ class KernelLogPage: BaseLogPage() {
     }
 
     private fun showLog() {
-        log_cat.text = HtmlCompat.fromHtml(logs.joinToString(""),HtmlCompat.FROM_HTML_MODE_LEGACY)
+        log_cat?.text = HtmlCompat.fromHtml(logs.joinToString(""),HtmlCompat.FROM_HTML_MODE_LEGACY)
     }
 
     companion object {

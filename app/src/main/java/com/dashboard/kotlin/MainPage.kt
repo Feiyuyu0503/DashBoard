@@ -175,15 +175,50 @@ class MainPage : Fragment(), androidx.appcompat.widget.Toolbar.OnMenuItemClickLi
 
         runningStatusScope?.cancel()
         runningStatusScope = lifecycleScope.launch {
-            var last: ClashStatus.Status? = null
+            var lastStatus: ClashStatus.Status? = null
+            var lastViewPage: Int? = null
             while (true){
                 val status = ClashStatus.getRunStatus()
-                if (last == status) continue
-                last = status
-                when(status){
-                    ClashStatus.Status.CmdRunning -> setStatusCmdRunning()
-                    ClashStatus.Status.Running -> setStatusRunning()
-                    ClashStatus.Status.Stop -> setStatusStopped()
+                if (lastStatus == status) continue else lastStatus = status
+
+                clash_status.isClickable = status != ClashStatus.Status.CmdRunning
+                if (status != ClashStatus.Status.Running) {
+                    resources_status_text.visibility = View.VISIBLE
+                    startStatusScope()
+                } else {
+                    resources_status_text.visibility = View.INVISIBLE
+                    stopStatusScope()
+                }
+                clash_status.setCardBackgroundColor(
+                    ResourcesCompat.getColor(resources,
+                        if (status == ClashStatus.Status.Running)
+                            R.color.colorPrimary
+                        else
+                            R.color.gray
+                        , context?.theme)
+                )
+                clash_status_icon.setImageDrawable(
+                    ResourcesCompat.getDrawable(resources,
+                        when(status){
+                            ClashStatus.Status.CmdRunning -> R.drawable.ic_refresh
+                            ClashStatus.Status.Running -> R.drawable.ic_activited
+                            ClashStatus.Status.Stop -> R.drawable.ic_service_not_running
+                        }
+                        , context?.theme)
+                )
+                clash_status_text.text = when(status){
+                    ClashStatus.Status.CmdRunning -> getString(R.string.clash_charging)
+                    ClashStatus.Status.Running -> getString(R.string.clash_enable)
+                    ClashStatus.Status.Stop -> getString(R.string.clash_disable)
+                }
+                if (status == ClashStatus.Status.CmdRunning) {
+                    lastViewPage = viewPager.currentItem
+                    viewPager.setCurrentItem(1, true)
+                } else launch {
+                    lastViewPage?.let {
+                        delay(3000)
+                        viewPager.setCurrentItem(it, true)
+                    }
                 }
                 delay(500)
             }
@@ -196,64 +231,6 @@ class MainPage : Fragment(), androidx.appcompat.widget.Toolbar.OnMenuItemClickLi
         intent?.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
         intent?.putExtra("REBOOT", "reboot")
         startActivity(intent)
-    }
-
-    private fun setStatusRunning(){
-        startStatusScope()
-        //if (clash_status_text.text == getString(R.string.clash_enable))
-        //    return
-        clash_status.isClickable = true
-        clash_status.setCardBackgroundColor(
-            ResourcesCompat.getColor(resources, R.color.colorPrimary, context?.theme)
-        )
-        clash_status_icon.setImageDrawable(
-            ResourcesCompat.getDrawable(resources, R.drawable.ic_activited, context?.theme)
-        )
-        clash_status_text.text = getString(R.string.clash_enable)
-
-        resources_status_text.visibility = View.VISIBLE
-    }
-
-    private fun setStatusCmdRunning(){
-        //if (clash_status_text.text == getString(R.string.clash_charging))
-        //    return
-        clash_status.isClickable = false
-        clash_status.setCardBackgroundColor(
-            ResourcesCompat.getColor(
-                resources,
-                R.color.gray,
-                context?.theme
-            )
-        )
-        clash_status_icon.setImageDrawable(
-            ResourcesCompat.getDrawable(
-                resources,
-                R.drawable.ic_refresh,
-                context?.theme
-            )
-        )
-        clash_status_text.text = getString(R.string.clash_charging)
-        resources_status_text.visibility = View.INVISIBLE
-        stopStatusScope()
-    }
-
-    private fun setStatusStopped(){
-        //if (clash_status_text.text == getString(R.string.clash_disable))
-        //    return
-        clash_status.isClickable = true
-        clash_status.setCardBackgroundColor(
-            ResourcesCompat.getColor(resources, R.color.gray, context?.theme)
-        )
-        clash_status_icon.setImageDrawable(
-            ResourcesCompat.getDrawable(
-                resources,
-                R.drawable.ic_service_not_running,
-                context?.theme
-            )
-        )
-        clash_status_text.text = getString(R.string.clash_disable)
-        resources_status_text.visibility = View.INVISIBLE
-        stopStatusScope()
     }
 
     override fun onMenuItemClick(item: MenuItem): Boolean =
