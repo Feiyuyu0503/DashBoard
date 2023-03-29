@@ -5,27 +5,21 @@ import com.dashboard.kotlin.MApplication.Companion.GExternalCacheDir
 import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.*
 import org.json.JSONObject
-import java.io.File
 import java.net.HttpURLConnection
 import java.net.URL
 
 
 object ClashConfig {
 
-    private var paths: List<String>
-    private val useTemplate: Boolean
+    var paths: List<String>
 
     init {
         System.loadLibrary("yaml-reader")
-        if (setTemplate().also { useTemplate = it })
-            mergeConfig("config.yaml")
-        else
-            setConfig()
-
+        setConfig()
         paths = Shell.cmd(
             "mkdir -p $dataPath/run",
-             "cp -f $dataPath/clash.config $dataPath/run/c.cfg",
-            " echo '\necho \"\${Clash_bin_path};\${Clash_scripts_dir};\"' >> $dataPath/run/c.cfg",
+            "cp -f $dataPath/clash.config $dataPath/run/c.cfg",
+            "echo '\necho \"\${Clash_bin_path};\${Clash_scripts_dir};\${Subcript_url}\"' >> $dataPath/run/c.cfg",
             "$dataPath/run/c.cfg"
         ).exec().out.last().split(';')
         Shell.cmd("rm -f $dataPath/run/c.cfg").submit()
@@ -46,7 +40,13 @@ object ClashConfig {
         }.getOrDefault( "/data/clash/scripts")
     }
 
-    val mergedConfigPath
+    //val Subscribe by lazy {
+    //    runCatching {
+    //        paths[1].trim() != ""
+    //    }.getOrDefault( false)
+    //}
+
+    private val mergedConfigPath
         get() = "${dataPath}/run/config.yaml"
 
     val logPath
@@ -59,13 +59,7 @@ object ClashConfig {
         get() = "${dataPath}/config.yaml"
 
     val extController by lazy {
-        val temp = getFromFile("$GExternalCacheDir/template", arrayOf("external-controller"))
-
-        when {
-            temp.trim() == "" -> "127.0.0.1:9090"
-            temp.startsWith(":") -> "127.0.0.1$temp"
-            else -> temp
-        }
+        getExternalController()
     }
 
     val baseURL by lazy {
@@ -85,10 +79,6 @@ object ClashConfig {
     }
 
     fun updateConfig(callBack: (r: String) -> Unit) {
-        if (useTemplate) {
-            setTemplate()
-            mergeConfig("config.yaml")
-        }
         if (Shell.cmd("diff '$configPath' '$mergedConfigPath' > /dev/null")
                 .exec()
                 .isSuccess
@@ -152,26 +142,24 @@ object ClashConfig {
         }
     }
 
-    private fun mergeConfig(outputFileName: String) {
-        Shell.cmd(
-            "sed -n -E '/^proxies:.*\$/,\$p' $configPath> $GExternalCacheDir/noMergedConfig.yaml"
-        ).exec()
-        mergeFile(
-            "$GExternalCacheDir/template",
-            "$GExternalCacheDir/noMergedConfig.yaml",
-            "$GExternalCacheDir/$outputFileName"
-        )
-        deleteFile(GExternalCacheDir, "noMergedConfig.yaml")
-        Shell.cmd("cp -f '$GExternalCacheDir/$outputFileName' '$mergedConfigPath'")
-        Log.e("TAG", "mergeConfig: $GExternalCacheDir", )
+
+    private fun getExternalController(): String {
+
+        val temp = getFromFile("$GExternalCacheDir/config.yaml", arrayOf("external-controller"))
+
+        return when {
+            temp.trim() == "" -> "127.0.0.1:9090"
+            temp.startsWith(":") -> "127.0.0.1$temp"
+            else -> temp
+        }
     }
 
-    private fun setFileNR(dirPath: String, fileName: String, func: (file: String) -> Unit) {
-        copyFile(dirPath, fileName)
-        func("$GExternalCacheDir/${fileName}")
-        Shell.cmd("cp '$GExternalCacheDir/${fileName}' '${dirPath}/${fileName}'").exec()
-        deleteFile(GExternalCacheDir, fileName)
-    }
+    //private fun setFileNR(dirPath: String, fileName: String, func: (file: String) -> Unit) {
+    //    copyFile(dirPath, fileName)
+    //    func("$GExternalCacheDir/${fileName}")
+    //    Shell.cmd("cp '$GExternalCacheDir/${fileName}' '${dirPath}/${fileName}'").exec()
+    //    deleteFile(GExternalCacheDir, fileName)
+    //}
 
     private fun copyFile(dirPath: String, fileName: String): Boolean {
         if (Shell.cmd("ls '${dirPath}/${fileName}'").exec().isSuccess.not())
@@ -183,20 +171,14 @@ object ClashConfig {
         return true
     }
 
-    private fun deleteFile(dirPath: String, fileName: String) {
-        runCatching {
-            File(dirPath, fileName).delete()
-        }
-    }
+    //private fun deleteFile(dirPath: String, fileName: String) {
+    //    runCatching {
+    //        File(dirPath, fileName).delete()
+    //    }
+    //}
 
     private external fun getFromFile(path: String, nodes: Array<String>): String
     private external fun modifyFile(path: String, node: String, value: String)
-    private external fun mergeFile(
-        mainFilePath: String,
-        templatePath: String,
-        outputFilePath: String
-    )
 
-    private fun setTemplate() = copyFile(dataPath, "template")
     private fun setConfig() = copyFile(dataPath, "config.yaml")
 }

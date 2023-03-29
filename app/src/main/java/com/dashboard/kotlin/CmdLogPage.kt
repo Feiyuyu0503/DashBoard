@@ -1,6 +1,7 @@
 package com.dashboard.kotlin
 
 import android.annotation.SuppressLint
+import android.text.Html
 import android.text.Spanned
 import android.widget.ScrollView
 import androidx.core.text.HtmlCompat

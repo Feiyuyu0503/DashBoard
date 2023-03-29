@@ -1,17 +1,17 @@
 package com.dashboard.kotlin
 
+import android.util.Log
 import androidx.core.text.HtmlCompat
 import androidx.lifecycle.lifecycleScope
 import com.dashboard.kotlin.clashhelper.ClashConfig
 import com.google.gson.Gson
-import com.google.gson.annotations.SerializedName
 import kotlinx.android.synthetic.main.fragment_log.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import okhttp3.*
 
 class KernelLogPage: BaseLogPage() {
-    data class WSLog(@SerializedName("type")val type: String?, @SerializedName("payload")val payload: String?)
+    data class WSLog(val type: String, val payload: String)
 
     private val gson = Gson()
     private val wsRawLog = Channel<String>(Channel.UNLIMITED)
