@@ -8,7 +8,6 @@ import com.dashboard.kotlin.clashhelper.ClashStatus
 import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.*
 
-@Suppress("OPT_IN_IS_NOT_ENABLED")
 @OptIn(DelicateCoroutinesApi::class)
 class TileButtonService : TileService() {
     companion object {

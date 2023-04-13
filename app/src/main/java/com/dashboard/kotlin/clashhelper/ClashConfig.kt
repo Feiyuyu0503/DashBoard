@@ -19,7 +19,7 @@ object ClashConfig {
         paths = Shell.cmd(
             "mkdir -p $dataPath/run",
             "cp -f $dataPath/clash.config $dataPath/run/c.cfg",
-            "echo '\necho \"\${Clash_bin_path};\${Clash_scripts_dir};\${Subcript_url}\"' >> $dataPath/run/c.cfg",
+            "echo '\necho \"\${Clash_bin_path};\${Clash_scripts_dir};\${Subscript_url}\"' >> $dataPath/run/c.cfg",
             "$dataPath/run/c.cfg"
         ).exec().out.last().split(';')
         Shell.cmd("rm -f $dataPath/run/c.cfg").submit()

@@ -42,7 +42,7 @@ class CmdLogPage : BaseLogPage() {
             false
         }
         readLogScope = lifecycleScope.launch(Dispatchers.IO) {
-            val clashV = Shell.cmd("${ClashConfig.corePath} -v").exec().out.last()
+            val clashV = Shell.cmd("${ClashConfig.corePath} -v").exec().out.joinToString("\n")
             withContext(Dispatchers.Main){
                 log_cat.text = formatLog("$clashV\n${readLog()}")
             }

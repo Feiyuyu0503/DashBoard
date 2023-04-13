@@ -13,17 +13,6 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        this.window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
-        this.window.statusBarColor = ResourcesCompat.getColor(
-            resources,
-            android.R.color.transparent,
-            applicationContext?.theme
-        )
-        this.window.navigationBarColor = ResourcesCompat.getColor(
-            resources,
-            android.R.color.transparent,
-            applicationContext?.theme
-        )
 
         KV.putBoolean("TailLongClick", false)
         if (intent.action == TileService.ACTION_QS_TILE_PREFERENCES) {
