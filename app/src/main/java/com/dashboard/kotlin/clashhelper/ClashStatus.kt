@@ -30,13 +30,14 @@ object ClashStatus {
 
     private val isClashRunning by LazyWithTimeOut(500) {
         runCatching {
-            val conn =
-                URL(ClashConfig.baseURL).openConnection() as HttpURLConnection
+            val conn = URL(ClashConfig.baseURL).openConnection() as HttpURLConnection
             conn.requestMethod = "GET"
             conn.connectTimeout = 500
             conn.setRequestProperty("Authorization", "Bearer ${ClashConfig.secret}")
-            conn.inputStream.bufferedReader()
-                .readText().contains("{\"hello\":\"clash")
+    
+            val response = conn.inputStream.bufferedReader().readText()
+
+            response.contains("{\"hello\":\"mihomo") || response.contains("{\"hello\":\"clash")
         }.getOrDefault(
             Shell.cmd("kill -0 `cat ${ClashConfig.pidPath}`")
                 .exec().isSuccess
