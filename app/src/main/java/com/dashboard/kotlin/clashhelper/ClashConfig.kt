@@ -54,7 +54,7 @@ object ClashConfig {
         get() = "${dataPath}/run/run.logs"
 
     val pidPath
-        get() = "${dataPath}/run/clash.pid"
+        get() = "/data/adb/box/run/box.pid"
 
     val configPath
         get() = "${dataPath}/config.yaml"
