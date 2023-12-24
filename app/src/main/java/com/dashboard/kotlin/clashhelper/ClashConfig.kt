@@ -26,6 +26,8 @@ object ClashConfig {
         Shell.cmd("rm -f $dataPath/run/c.cfg").submit()
     }
 
+    val isBox4Root = true
+
     val dataPath
         get() = "/data/clash"
 
