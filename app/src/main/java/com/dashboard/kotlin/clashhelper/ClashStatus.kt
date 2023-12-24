@@ -122,7 +122,7 @@ object ClashStatus {
         if (isCmdRunning) return
         isCmdRunning = true
         Shell.cmd(
-            "${ClashConfig.scriptsPath}/clash.service -s && ${ClashConfig.scriptsPath}/clash.iptables -s"
+            "su -c /data/adb/box/scripts/box.service start &&  su -c /data/adb/box/scripts/box.iptables enable"
         ).submit{
             isCmdRunning = false
         }
@@ -132,8 +132,7 @@ object ClashStatus {
         if (isCmdRunning) return
         isCmdRunning = true
         Shell.cmd(
-            "${ClashConfig.scriptsPath}/clash.service -k",
-            "${ClashConfig.scriptsPath}/clash.iptables -k"
+            "su -c /data/adb/box/scripts/box.iptables disable && su -c /data/adb/box/scripts/box.service stop"
         ).submit{
             isCmdRunning = false
         }
